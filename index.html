@@ -288,6 +288,10 @@
                         <label class="field-label">총금액 하단 문구</label>
                         <input type="text" id="in-total-note" class="admin-input" value="관납료, 수수료, 부가가치세(10%) 포함" oninput="updatePreview()">
                     </div>
+                    <div>
+                        <label class="field-label">착수금 안내 문구</label>
+                        <input type="text" id="in-deposit-note" class="admin-input" value="상기 착수금 입금 후 업무가 개시됩니다" oninput="updatePreview()" placeholder="비워두면 표시 안 함">
+                    </div>
                 </section>
 
                 <div class="p-4 bg-slate-900 rounded-lg text-white flex-shrink-0">
@@ -371,7 +375,7 @@
                             <div class="mt-4 pt-3 border-t border-slate-200">
                                 <p class="text-[9px] text-blue-600 font-bold tracking-widest uppercase mb-1">착수금 입금액</p>
                                 <p id="pv-deposit" class="text-2xl font-extrabold tracking-tighter" style="color:#001A35;">— 항목 선택 전</p>
-                                <p class="text-[9px] text-blue-500 mt-1 font-medium">✓ 좌측에서 청구 항목을 체크하세요</p>
+                                <p id="pv-deposit-note" class="text-[9px] text-blue-500 mt-1 font-medium"></p>
                             </div>
                         </div>
                     </div>
@@ -963,6 +967,8 @@ if (fixedAcc) {
             // 착수금 계산: checked 항목만 합산
             const checkedItems = items.filter(x => x.checked);
             const depositEl = document.getElementById('pv-deposit');
+            const depositNoteEl = document.getElementById('pv-deposit-note');
+            const depositNoteInput = document.getElementById('in-deposit-note');
             if (depositEl) {
                 if (checkedItems.length > 0) {
                     const dGov = checkedItems.reduce((s, x) => s + (x.isGovTBD ? 0 : (x.govPrice || 0)), 0);
@@ -974,6 +980,10 @@ if (fixedAcc) {
                     depositEl.innerText = '— 항목 선택 전';
                     depositEl.style.color = '#94A3B8';
                 }
+            }
+            if (depositNoteEl && depositNoteInput) {
+                const noteVal = depositNoteInput.value.trim();
+                depositNoteEl.innerText = noteVal ? '✓ ' + noteVal : '';
             }
             document.getElementById('pv-notice').innerHTML = notices.map(n => `<div>${n}</div>`).join('');
         }
@@ -1083,6 +1093,7 @@ if (fixedAcc) {
                     expiry: document.getElementById('in-expiry-date').value, 
                     items: items,
                     deposit_item_ids: items.filter(x => x.checked).map(x => x.id),
+                    deposit_note: document.getElementById('in-deposit-note').value.trim(),
                     notices: notices, 
                     bank: { 
                         name: document.getElementById('in-bank-name').value, 
