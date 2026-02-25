@@ -131,21 +131,30 @@
       else run();
     })();
     </script>
-    <div class="flex flex-col md:flex-row h-screen overflow-y-auto md:overflow-hidden">
+    <header id="main-nav" style="background:#001A35;" class="fixed top-0 left-0 right-0 z-50 text-white flex items-center justify-between px-5 py-2.5 shadow-lg no-print">
+        <div class="flex items-center gap-1.5">
+            <span class="font-black text-sm tracking-tight mr-2" style="letter-spacing:-0.03em;">TEHERAN</span>
+            <a href="index.html"
+               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white">
+                <i class="fa-solid fa-file-invoice-dollar"></i> 견적서 작성
+            </a>
+            <a href="clients.html?tab=quotes"
+               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white/60 hover:text-white hover:bg-white/10 transition">
+                <i class="fa-solid fa-list-check"></i> 발행이력
+            </a>
+            <a href="clients.html?tab=clients"
+               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white/60 hover:text-white hover:bg-white/10 transition">
+                <i class="fa-solid fa-users"></i> 고객목록
+            </a>
+        </div>
+        <div class="flex gap-1.5">
+            <button onclick="loadSample()" class="text-[9px] font-bold border border-white/20 px-2 py-0.5 rounded text-white/70 hover:bg-white/10">샘플</button>
+            <button onclick="resetAll()" class="text-[9px] font-bold border border-white/20 px-2 py-0.5 rounded text-red-300 hover:bg-white/10">초기화</button>
+            <button onclick="testGoogleSheet()" class="text-[9px] font-bold border border-green-400/40 px-2 py-0.5 rounded text-green-300 hover:bg-white/10">시트테스트</button>
+        </div>
+    </header>
+    <div class="flex flex-col md:flex-row h-screen overflow-y-auto md:overflow-hidden" style="padding-top:46px;">
         <aside class="admin-sidebar flex-shrink-0 flex flex-col overflow-y-auto shadow-xl z-20 no-print md:w-[500px]">
-            <div class="p-3 border-b border-slate-100 bg-slate-50 flex justify-between items-center flex-shrink-0">
-                <div class="flex items-center gap-3">
-                    <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> 견적 마스터 v4.0</h2>
-                    <a href="clients.html" class="text-[9px] font-bold border border-blue-300 px-2 py-0.5 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 flex items-center gap-1">
-                        <i class="fa-solid fa-users"></i> 고객 DB
-                    </a>
-                </div>
-                <div class="flex gap-1.5">
-                    <button onclick="loadSample()" class="text-[9px] font-bold border border-slate-200 px-2 py-0.5 rounded bg-white hover:bg-slate-50">샘플</button>
-                    <button onclick="resetAll()" class="text-[9px] font-bold border border-slate-200 px-2 py-0.5 rounded bg-white text-red-500 hover:bg-red-50">초기화</button>
-                    <button onclick="testGoogleSheet()" class="text-[9px] font-bold border border-green-300 px-2 py-0.5 rounded bg-green-50 text-green-700 hover:bg-green-100" title="현재 입력값을 구글 시트로 전송 테스트">시트테스트</button>
-                </div>
-            </div>
             <div class="p-4 space-y-4 overflow-y-auto flex-1 min-h-0">
                 <!-- 0. 템플릿 -->
                 <section class="space-y-2">
@@ -216,7 +225,6 @@
                     <div class="section-title">4. 견적세부정보 (Doc Info)</div>
                     <!-- [ADD] detail builder 선택 UI -->
                     <div id="detail-builder" class="p-2 bg-slate-50 border border-slate-200 rounded text-[10px] space-y-2">
-                        <div class="flex flex-wrap gap-x-3 gap-y-1"><span class="text-slate-500 font-bold">견적서/청구서:</span><label class="inline-flex items-center gap-1"><input type="checkbox" name="cb-doc" id="cb-estimate" onchange="handleSingleSelect(this); syncDetailBuilder()">견적서</label><label class="inline-flex items-center gap-1"><input type="checkbox" name="cb-doc" id="cb-invoice" onchange="handleSingleSelect(this); syncDetailBuilder()">청구서</label></div>
                         <div class="flex flex-wrap gap-x-3 gap-y-1"><span class="text-slate-500 font-bold">신규/기존:</span><label class="inline-flex items-center gap-1"><input type="checkbox" name="cb-newold" id="cb-new" onchange="handleSingleSelect(this); syncDetailBuilder()">신규</label><label class="inline-flex items-center gap-1"><input type="checkbox" name="cb-newold" id="cb-existing" onchange="handleSingleSelect(this); syncDetailBuilder()">기존</label></div>
                         <div class="flex flex-wrap gap-x-2 gap-y-1 items-center"><span class="text-slate-500 font-bold">IP유형:</span><label class="inline-flex items-center gap-1"><input type="checkbox" id="cb-patent" onchange="syncDetailBuilder()">특허</label><label class="inline-flex items-center gap-1"><input type="checkbox" id="cb-utility" onchange="syncDetailBuilder()">실용신안</label><label class="inline-flex items-center gap-1"><input type="checkbox" id="cb-trademark" onchange="syncDetailBuilder()">상표</label><label class="inline-flex items-center gap-1"><input type="checkbox" id="cb-design" onchange="syncDetailBuilder()">디자인</label><label class="inline-flex items-center gap-1"><input type="checkbox" id="cb-ip-custom" onchange="syncDetailBuilder()">직접입력</label><input type="text" id="in-ip-custom" class="admin-input w-16 text-[9px] h-6 hidden" placeholder="입력" oninput="syncDetailBuilder()"></div>
                         <div class="flex flex-wrap gap-x-2 gap-y-1 items-center"><span class="text-slate-500 font-bold">단계:</span><label class="inline-flex items-center gap-1"><input type="checkbox" name="cb-stage" id="cb-apply" onchange="handleSingleSelect(this); syncDetailBuilder()">출원</label><label class="inline-flex items-center gap-1"><input type="checkbox" name="cb-stage" id="cb-register" onchange="handleSingleSelect(this); syncDetailBuilder()">등록</label><label class="inline-flex items-center gap-1"><input type="checkbox" name="cb-stage" id="cb-mid" onchange="handleSingleSelect(this); syncDetailBuilder()">중간사건</label><label class="inline-flex items-center gap-1"><input type="checkbox" name="cb-stage" id="cb-stage-custom" onchange="handleSingleSelect(this); syncDetailBuilder()">직접입력</label><input type="text" id="in-stage-custom" class="admin-input w-16 text-[9px] h-6 hidden" placeholder="입력" oninput="syncDetailBuilder()"></div>
@@ -350,14 +358,21 @@
                     </table>
                     </div>
 
-                    <div class="print-keep print-row print-row-center flex flex-col md:flex-row gap-0 bg-[#F8FAFC] p-4 md:p-6 mt-4 md:mt-8 border-t border-slate-200">
+                    <div class="print-keep print-row print-row-center flex flex-col md:flex-row gap-0 bg-[#F8FAFC] p-4 md:p-6 mt-0 border-t border-slate-200">
                         <div class="flex-grow flex flex-col justify-center md:pr-8 order-last md:order-none pt-4 md:pt-0">
                             <div id="pv-notice" class="space-y-1 text-[11px] md:text-[10px] text-slate-400 leading-relaxed font-light"><div>• 본 견적 금액에는 대리인 수수료에 대한 부가가치세(10%)가 포함되어 있습니다.</div><div>• 관납료는 국가 실비로서, 고객사의 감면 조건에 따라 실제 납부 시점에 변동될 수 있습니다.</div><div>• 착수금 입금 확인 후 업무가 공식적으로 개시됩니다.</div></div>
                         </div>
                         <div id="total-divider" class="print-total w-full md:w-[300px] text-right flex flex-col justify-center border-b md:border-b-0 md:border-l border-slate-200 pb-4 md:pb-0 md:pt-0 md:pl-8 order-first md:order-none">
-                            <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase mb-1">총금액</p>
-                            <h2 id="pv-total" class="text-3xl font-extrabold tracking-tighter text-[#001A35]">₩ 1,696,000</h2>
-                            <p id="pv-total-note" class="text-[10px] text-slate-400 mt-2 leading-relaxed italic">관납료, 수수료, 부가가치세(10%) 포함</p>
+                            <!-- 견적 총금액: 강조 없이 작게 -->
+                            <p class="text-[9px] text-slate-400 font-bold tracking-widest uppercase mb-0.5">견적 총금액</p>
+                            <p id="pv-total" class="text-base font-semibold text-slate-400 tracking-tight">₩ 1,696,000</p>
+                            <p id="pv-total-note" class="text-[9px] text-slate-400 mt-0.5 leading-relaxed italic">관납료, 수수료, 부가가치세(10%) 포함</p>
+                            <!-- 착수금 입금액: 강조 표시 -->
+                            <div class="mt-4 pt-3 border-t border-slate-200">
+                                <p class="text-[9px] text-blue-600 font-bold tracking-widest uppercase mb-1">착수금 입금액</p>
+                                <p id="pv-deposit" class="text-2xl font-extrabold tracking-tighter" style="color:#001A35;">— 항목 선택 전</p>
+                                <p class="text-[9px] text-blue-500 mt-1 font-medium">✓ 좌측에서 청구 항목을 체크하세요</p>
+                            </div>
                         </div>
                     </div>
 
@@ -584,7 +599,11 @@
                 return { error: e.message || String(e) };
             }
         }
-        let items = [{ id: 1, name: '특허출원 (바이오모듈레이터)', govPrice: 46000, feePrice: 1500000, isGovTBD: false, note: '특허청 실비 포함', govText: '*청구항 5항 기준', feeText: '*부가세별도' }];
+        let items = [
+            { id: 1, name: '특허출원', govPrice: 46000, feePrice: 1500000, isGovTBD: false, note: '특허청 실비 포함', govText: '*청구항 5항 기준', feeText: '*부가세별도', checked: false },
+            { id: 2, name: '우선심사', govPrice: 200000, feePrice: 300000, isGovTBD: false, note: '', govText: '', feeText: '*부가세별도', checked: false },
+            { id: 3, name: '특허등록', govPrice: 93000, feePrice: 400000, isGovTBD: false, note: '설정등록료', govText: '*청구항 기준', feeText: '*부가세별도', checked: false }
+        ];
         let notices = ["• 본 견적 금액에는 대리인 수수료에 대한 부가가치세(10%)가 포함되어 있습니다.", "• 관납료는 국가 실비로서, 고객사의 감면 조건에 따라 실제 납부 시점에 변동될 수 있습니다.", "• 착수금 입금 확인 후 업무가 공식적으로 개시됩니다."];
         
         function getFormattedDate(date) {
@@ -640,7 +659,6 @@
             var cbApply = document.getElementById('cb-apply'); if (cbApply) cbApply.checked = true;
             var cbPriority = document.getElementById('cb-priority'); if (cbPriority) cbPriority.checked = true;
             var cbCount1 = document.getElementById('cb-count1'); if (cbCount1) cbCount1.checked = true;
-            var cbEst = document.getElementById('cb-estimate'); if (cbEst) cbEst.checked = true;
             updatePreview(); 
             loadSavedImages();
             toggleLogoFilter(document.getElementById('logo-filter-check').checked);
@@ -716,8 +734,7 @@
             var stage = ''; document.querySelectorAll('input[name="cb-stage"]:checked').forEach(function(cb){ var t = cb.id === 'cb-apply' ? '출원' : cb.id === 'cb-register' ? '등록' : cb.id === 'cb-mid' ? '중간사건' : (cb.id === 'cb-stage-custom' ? document.getElementById('in-stage-custom').value.trim() : ''); if (t) stage = t; });
             var exam = ''; document.querySelectorAll('input[name="cb-exam"]:checked').forEach(function(cb){ if (cb.id === 'cb-exam-na') exam = ''; else exam = cb.id === 'cb-normal' ? '일반심사' : '우선심사'; });
             var cnt = ''; if (document.getElementById('cb-count1').checked) cnt = '1'; else if (document.getElementById('cb-count2').checked) cnt = '2'; else if (document.getElementById('cb-count-custom').checked) cnt = String(document.getElementById('in-count-custom').value.trim()).replace(/건$/, '') || '1'; else cnt = '1';
-            var docTypes = ''; document.querySelectorAll('input[name="cb-doc"]:checked').forEach(function(cb){ docTypes = cb.id === 'cb-estimate' ? '견적서' : '청구서'; });
-            var parts = []; if (newold) parts.push(newold); if (ipTypes && stage) parts.push(ipTypes + ' ' + stage); else if (ipTypes) parts.push(ipTypes); else if (stage) parts.push(stage); if (exam) parts.push(exam); if (cnt) parts.push(cnt + '건'); if (docTypes) parts.push(docTypes);
+            var parts = []; if (newold) parts.push(newold); if (ipTypes && stage) parts.push(ipTypes + ' ' + stage); else if (ipTypes) parts.push(ipTypes); else if (stage) parts.push(stage); if (exam) parts.push(exam); if (cnt) parts.push(cnt + '건');
             var s = parts.join(', ');
             if (parts.length) document.getElementById('in-quote-info').value = s;
             document.getElementById('in-ip-custom').classList.toggle('hidden', !document.getElementById('cb-ip-custom').checked);
@@ -731,9 +748,8 @@
         function updateAutoTitle() {
             var ipArr = []; if (document.getElementById('cb-patent').checked) ipArr.push('특허'); if (document.getElementById('cb-utility').checked) ipArr.push('실용신안'); if (document.getElementById('cb-trademark').checked) ipArr.push('상표'); if (document.getElementById('cb-design').checked) ipArr.push('디자인'); if (document.getElementById('cb-ip-custom').checked) { var v = document.getElementById('in-ip-custom').value.trim(); if (v) ipArr.push(v); } var ipTypes = ipArr.join('/');
             var stage = ''; document.querySelectorAll('input[name="cb-stage"]:checked').forEach(function(cb){ stage = cb.id === 'cb-apply' ? '출원' : cb.id === 'cb-register' ? '등록' : cb.id === 'cb-mid' ? '중간사건' : (cb.id === 'cb-stage-custom' ? document.getElementById('in-stage-custom').value.trim() : stage); });
-            var docTypes = ''; document.querySelectorAll('input[name="cb-doc"]:checked').forEach(function(cb){ docTypes = cb.id === 'cb-estimate' ? '견적서' : '청구서'; }); if (!docTypes) docTypes = '견적서';
             var mid = (ipTypes || '') + (stage ? ' ' + stage : ''); if (!mid.trim()) return;
-            var t = mid.trim() + '에 대한 비용 ' + docTypes + ' 송부의 건';
+            var t = mid.trim() + '에 대한 비용 견적서 송부의 건';
             document.getElementById('in-title').value = t;
         }
 
@@ -752,7 +768,7 @@
             updatePreview(); 
         }
 
-        function addRow() { items.push({ id: Date.now(), name: '', govPrice: 0, feePrice: 0, isGovTBD: false, note: '특허청 실비 포함', govText: '*청구항 5항 기준', feeText: '*부가세별도' }); renderInputs(); updatePreview(); }
+        function addRow() { items.push({ id: Date.now(), name: '', govPrice: 0, feePrice: 0, isGovTBD: false, note: '특허청 실비 포함', govText: '*청구항 5항 기준', feeText: '*부가세별도', checked: false }); renderInputs(); updatePreview(); }
         function removeRow(id) { items = items.filter(i => i.id !== id); renderInputs(); updatePreview(); }
         
         const TEMPLATE_KEY = 'teheran_quote_templates';
@@ -837,28 +853,41 @@
             const container = document.getElementById('items-container'); container.innerHTML = '';
             items.forEach(item => {
                 const div = document.createElement('div'); div.className = 'p-3 bg-slate-50 border border-slate-200 rounded space-y-2 relative';
-                div.innerHTML = `<button onclick="removeRow(${item.id})" class="absolute top-1.5 right-1.5 text-slate-300 hover:text-red-500 text-[10px]"><i class="fa-solid fa-xmark"></i></button>
-                <div class="space-y-1">
-                    <input type="text" class="admin-input font-bold" value="${item.name}" oninput="updateItem(${item.id}, 'name', this.value)" placeholder="서비스 항목명">
-                    <input type="text" class="admin-input text-[10px] h-6" value="${item.note || ''}" oninput="updateItem(${item.id}, 'note', this.value)" placeholder="비고">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="space-y-1 p-2 bg-white rounded border border-slate-100">
-                        <div class="flex items-center gap-1">
-                            <input type="number" class="admin-input text-right text-[11px] flex-1" value="${item.govPrice}" oninput="updateItem(${item.id}, 'govPrice', this.value)" ${item.isGovTBD ? 'disabled' : ''}>
-                            <label class="text-[9px]"><input type="checkbox" onchange="toggleTBD(${item.id}, this.checked)" ${item.isGovTBD ? 'checked' : ''}> 추후</label>
-                        </div>
-                        <input type="text" class="admin-input text-[9px] h-5 opacity-70" value="${item.govText || ''}" oninput="updateItem(${item.id}, 'govText', this.value)" placeholder="관납료 설명">
-                    </div>
-                    <div class="space-y-1 p-2 bg-white rounded border border-slate-100">
-                        <input type="number" class="admin-input text-right text-blue-600 font-bold text-[11px]" value="${item.feePrice}" oninput="updateItem(${item.id}, 'feePrice', this.value)" placeholder="수수료">
-                        <input type="text" class="admin-input text-[9px] h-5 opacity-70" value="${item.feeText || ''}" oninput="updateItem(${item.id}, 'feeText', this.value)" placeholder="수수료 설명">
-                    </div>
-                </div>`;
+                div.innerHTML = `
+<div class="flex items-center justify-between mb-1.5">
+    <label class="flex items-center gap-1.5 cursor-pointer select-none">
+        <input type="checkbox" ${item.checked ? 'checked' : ''}
+               onchange="toggleItemCheck(${item.id}, this.checked)"
+               class="w-3.5 h-3.5 accent-blue-600 cursor-pointer">
+        <span class="text-[9px] font-bold text-blue-600">착수금 포함</span>
+    </label>
+    <button onclick="removeRow(${item.id})" class="text-slate-300 hover:text-red-500 text-[10px]"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<div class="space-y-1">
+    <input type="text" class="admin-input font-bold" value="${item.name}" oninput="updateItem(${item.id}, 'name', this.value)" placeholder="서비스 항목명">
+    <input type="text" class="admin-input text-[10px] h-6" value="${item.note || ''}" oninput="updateItem(${item.id}, 'note', this.value)" placeholder="비고">
+</div>
+<div class="grid grid-cols-2 gap-2">
+    <div class="space-y-1 p-2 bg-white rounded border border-slate-100">
+        <div class="flex items-center gap-1">
+            <input type="number" class="admin-input text-right text-[11px] flex-1" value="${item.govPrice}" oninput="updateItem(${item.id}, 'govPrice', this.value)" ${item.isGovTBD ? 'disabled' : ''}>
+            <label class="text-[9px]"><input type="checkbox" onchange="toggleTBD(${item.id}, this.checked)" ${item.isGovTBD ? 'checked' : ''}> 추후</label>
+        </div>
+        <input type="text" class="admin-input text-[9px] h-5 opacity-70" value="${item.govText || ''}" oninput="updateItem(${item.id}, 'govText', this.value)" placeholder="관납료 설명">
+    </div>
+    <div class="space-y-1 p-2 bg-white rounded border border-slate-100">
+        <input type="number" class="admin-input text-right text-blue-600 font-bold text-[11px]" value="${item.feePrice}" oninput="updateItem(${item.id}, 'feePrice', this.value)" placeholder="수수료">
+        <input type="text" class="admin-input text-[9px] h-5 opacity-70" value="${item.feeText || ''}" oninput="updateItem(${item.id}, 'feeText', this.value)" placeholder="수수료 설명">
+    </div>
+</div>`;
                 container.appendChild(div);
             });
         }
         function updateItem(id, field, value) { const item = items.find(x => x.id === id); if (item) { item[field] = (field === 'govPrice' || field === 'feePrice') ? Number(value) : value; updatePreview(); } }
+        function toggleItemCheck(id, checked) {
+            const item = items.find(x => x.id === id);
+            if (item) { item.checked = checked; updatePreview(); }
+        }
         function toggleTBD(id, c) { const i = items.find(x=>x.id===id); i.isGovTBD = c; if(c) { i.govPrice = 0; i.note = '※ 명세서 확정 후 실비 청구'; } else { i.note = '특허청 실비 포함'; } renderInputs(); updatePreview(); }
         function addNotice() { notices.push(""); renderNotices(); updatePreview(); }
         function removeNotice(idx) { notices.splice(idx, 1); renderNotices(); updatePreview(); }
@@ -931,6 +960,21 @@ if (fixedAcc) {
             const grandTotal = Math.round(tFee * 1.1) + tGov;
             document.getElementById('pv-total').innerText = '₩ ' + new Intl.NumberFormat('ko-KR').format(grandTotal);
             document.getElementById('admin-total-preview').innerText = '₩ ' + new Intl.NumberFormat('ko-KR').format(grandTotal);
+            // 착수금 계산: checked 항목만 합산
+            const checkedItems = items.filter(x => x.checked);
+            const depositEl = document.getElementById('pv-deposit');
+            if (depositEl) {
+                if (checkedItems.length > 0) {
+                    const dGov = checkedItems.reduce((s, x) => s + (x.isGovTBD ? 0 : (x.govPrice || 0)), 0);
+                    const dFee = checkedItems.reduce((s, x) => s + (x.feePrice || 0), 0);
+                    const depositTotal = Math.round(dFee * 1.1) + dGov;
+                    depositEl.innerText = '₩ ' + new Intl.NumberFormat('ko-KR').format(depositTotal);
+                    depositEl.style.color = '#001A35';
+                } else {
+                    depositEl.innerText = '— 항목 선택 전';
+                    depositEl.style.color = '#94A3B8';
+                }
+            }
             document.getElementById('pv-notice').innerHTML = notices.map(n => `<div>${n}</div>`).join('');
         }
 
@@ -958,7 +1002,7 @@ if (fixedAcc) {
             const grandTotal = Math.round(tFee * 1.1) + tGov;
             const costItems = (items && items.length) ? items : [{ govPrice: 0, feePrice: 0 }];
             // [ADD] A열 견적서/청구서, VAT(K열)
-            var docType = document.getElementById('cb-estimate').checked ? '견적서' : (document.getElementById('cb-invoice').checked ? '청구서' : '');
+            var docType = '견적서';
             const sheetRows = costItems.map(it => {
                 const agentFeeVal = typeof it.feePrice === 'string' ? Number(String(it.feePrice || 0).replace(/,/g, '')) : (it.feePrice || 0);
                 const vat = isNaN(agentFeeVal) ? 0 : Math.round(agentFeeVal * 0.1);
@@ -994,8 +1038,7 @@ if (fixedAcc) {
                     }
                 } catch(e) { console.warn('Client upsert error:', e); }
             }
-            const docType = document.getElementById('cb-estimate').checked ? '견적서'
-                          : document.getElementById('cb-invoice').checked  ? '청구서' : '견적서';
+            const docType = '견적서';
 
             const sealImg = document.getElementById('pv-seal-img');
             const sealDataURL = (sealImg.style.display !== 'none' && sealImg.src) ? sealImg.src : null;
@@ -1038,7 +1081,8 @@ if (fixedAcc) {
                     },
 
                     expiry: document.getElementById('in-expiry-date').value, 
-                    items: items, 
+                    items: items,
+                    deposit_item_ids: items.filter(x => x.checked).map(x => x.id),
                     notices: notices, 
                     bank: { 
                         name: document.getElementById('in-bank-name').value, 
@@ -1181,10 +1225,14 @@ if (fixedAcc) {
                 document.getElementById('in-quote-info').value = '신규, 특허출원, 우선심사, 1건';
                 document.getElementById('in-quote-date').value = todayStr;
                 handleExpiry('7');
-                items = [{ id: Date.now(), name: '특허출원 (바이오모듈레이터)', govPrice: 46000, feePrice: 1500000, isGovTBD: false, note: '특허청 실비 포함', govText: '*청구항 5항 기준', feeText: '*부가세별도' }];
+                items = [
+                    { id: Date.now(),   name: '특허출원', govPrice: 46000, feePrice: 1500000, isGovTBD: false, note: '특허청 실비 포함', govText: '*청구항 5항 기준', feeText: '*부가세별도', checked: false },
+                    { id: Date.now()+1, name: '우선심사', govPrice: 200000, feePrice: 300000, isGovTBD: false, note: '', govText: '', feeText: '*부가세별도', checked: false },
+                    { id: Date.now()+2, name: '특허등록', govPrice: 93000, feePrice: 400000, isGovTBD: false, note: '설정등록료', govText: '*청구항 기준', feeText: '*부가세별도', checked: false }
+                ];
                 notices = ["• 본 견적 금액에는 대리인 수수료에 대한 부가가치세(10%)가 포함되어 있습니다.", "• 관납료는 국가 실비로서, 고객사의 감면 조건에 따라 실제 납부 시점에 변동될 수 있습니다.", "• 착수금 입금 확인 후 업무가 공식적으로 개시됩니다."];
                 document.querySelectorAll('input[name="cb-newold"], input[name="cb-stage"], input[name="cb-exam"]').forEach(function(cb){ cb.checked = false; });
-                document.getElementById('cb-new').checked = true; document.getElementById('cb-patent').checked = true; document.getElementById('cb-apply').checked = true; document.getElementById('cb-priority').checked = true; document.getElementById('cb-estimate').checked = true; document.getElementById('cb-invoice').checked = false; document.getElementById('cb-count1').checked = true; document.getElementById('cb-count2').checked = false; document.getElementById('cb-count-custom').checked = false; document.getElementById('cb-utility').checked = false; document.getElementById('cb-trademark').checked = false; document.getElementById('cb-design').checked = false; document.getElementById('cb-ip-custom').checked = false; document.getElementById('cb-register').checked = false; document.getElementById('cb-mid').checked = false; document.getElementById('cb-stage-custom').checked = false; document.getElementById('cb-normal').checked = false; document.getElementById('in-ip-custom').classList.add('hidden'); document.getElementById('in-stage-custom').classList.add('hidden'); document.getElementById('in-count-custom').classList.add('hidden');
+                document.getElementById('cb-new').checked = true; document.getElementById('cb-patent').checked = true; document.getElementById('cb-apply').checked = true; document.getElementById('cb-priority').checked = true; document.getElementById('cb-count1').checked = true; document.getElementById('cb-count2').checked = false; document.getElementById('cb-count-custom').checked = false; document.getElementById('cb-utility').checked = false; document.getElementById('cb-trademark').checked = false; document.getElementById('cb-design').checked = false; document.getElementById('cb-ip-custom').checked = false; document.getElementById('cb-register').checked = false; document.getElementById('cb-mid').checked = false; document.getElementById('cb-stage-custom').checked = false; document.getElementById('cb-normal').checked = false; document.getElementById('in-ip-custom').classList.add('hidden'); document.getElementById('in-stage-custom').classList.add('hidden'); document.getElementById('in-count-custom').classList.add('hidden');
                 renderInputs(); renderNotices(); updatePreview(); 
             } 
         }
@@ -1197,8 +1245,12 @@ if (fixedAcc) {
             document.getElementById('in-quote-info').value = '신규, 특허출원, 우선심사, 1건';
             document.getElementById('in-quote-date').value = todayStr;
             handleExpiry('7');
-            items = [{ id: Date.now(), name: '특허출원 (바이오모듈레이터)', govPrice: 46000, feePrice: 1500000, isGovTBD: false, note: '특허청 실비 포함', govText: '*청구항 5항 기준', feeText: '*부가세별도' }];
-            document.getElementById('cb-new').checked = true; document.getElementById('cb-patent').checked = true; document.getElementById('cb-apply').checked = true; document.getElementById('cb-priority').checked = true; document.getElementById('cb-estimate').checked = true; document.getElementById('cb-count1').checked = true;
+            items = [
+                { id: Date.now(),   name: '특허출원', govPrice: 46000, feePrice: 1500000, isGovTBD: false, note: '특허청 실비 포함', govText: '*청구항 5항 기준', feeText: '*부가세별도', checked: false },
+                { id: Date.now()+1, name: '우선심사', govPrice: 200000, feePrice: 300000, isGovTBD: false, note: '', govText: '', feeText: '*부가세별도', checked: false },
+                { id: Date.now()+2, name: '특허등록', govPrice: 93000, feePrice: 400000, isGovTBD: false, note: '설정등록료', govText: '*청구항 기준', feeText: '*부가세별도', checked: false }
+            ];
+            document.getElementById('cb-new').checked = true; document.getElementById('cb-patent').checked = true; document.getElementById('cb-apply').checked = true; document.getElementById('cb-priority').checked = true; document.getElementById('cb-count1').checked = true;
             renderInputs(); updatePreview();
         }
         try { init(); whenSupabaseReady(); } catch(e) { console.error('Init error:', e); var d=new Date(); var el=document.getElementById('in-quote-date'); if(el)el.value=d.toISOString().split('T')[0]; }

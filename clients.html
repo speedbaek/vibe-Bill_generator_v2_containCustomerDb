@@ -63,15 +63,21 @@
 <body class="antialiased bg-slate-50 text-slate-800 overflow-hidden">
 
 <!-- ── 상단 네비 ── -->
-<header style="background:var(--navy)" class="text-white flex items-center justify-between px-5 py-2.5 shadow-lg z-30 relative flex-shrink-0">
-    <div class="flex items-center gap-4">
-        <a href="index.html" class="text-white/60 hover:text-white text-xs transition flex items-center gap-1.5">
-            <i class="fa-solid fa-file-invoice-dollar"></i>견적 작성
+<header style="background:#001A35;" class="sticky top-0 z-50 text-white flex items-center justify-between px-5 py-2.5 shadow-lg flex-shrink-0">
+    <div class="flex items-center gap-1.5">
+        <span class="font-black text-sm tracking-tight mr-2" style="letter-spacing:-0.03em;">TEHERAN</span>
+        <a href="index.html"
+           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white/60 hover:text-white hover:bg-white/10 transition">
+            <i class="fa-solid fa-file-invoice-dollar"></i> 견적서 작성
         </a>
-        <span class="text-white/20">|</span>
-        <h1 class="font-bold text-sm tracking-tight">
-            <i class="fa-solid fa-table mr-1.5 text-blue-400"></i>고객 &amp; 발행 현황
-        </h1>
+        <a id="nav-quotes" href="javascript:void(0)" onclick="switchView('quotes')"
+           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white">
+            <i class="fa-solid fa-list-check"></i> 발행이력
+        </a>
+        <a id="nav-clients" href="javascript:void(0)" onclick="switchView('clients')"
+           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white/60 hover:text-white hover:bg-white/10 transition">
+            <i class="fa-solid fa-users"></i> 고객목록
+        </a>
     </div>
     <button onclick="openNewModal()"
         class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
@@ -81,18 +87,6 @@
 
 <!-- ── 필터 바 ── -->
 <div class="bg-white border-b border-slate-200 px-5 py-2 flex items-center gap-3 flex-wrap flex-shrink-0">
-
-    <!-- 탭: 발행이력 / 고객목록 -->
-    <div class="flex border-b-0 gap-0 mr-2">
-        <button onclick="switchView('quotes')" id="tab-quotes" class="tab-btn active">
-            <i class="fa-solid fa-file-invoice-dollar mr-1"></i>발행 이력
-        </button>
-        <button onclick="switchView('clients')" id="tab-clients" class="tab-btn">
-            <i class="fa-solid fa-users mr-1"></i>고객 목록
-        </button>
-    </div>
-
-    <div class="w-px h-5 bg-slate-200"></div>
 
     <!-- 검색 -->
     <div class="relative">
@@ -303,10 +297,18 @@ function switchView(view) {
     activeView = view;
     document.getElementById('view-quotes').classList.toggle('hidden', view !== 'quotes');
     document.getElementById('view-clients').classList.toggle('hidden', view !== 'clients');
-    document.getElementById('tab-quotes').className  = 'tab-btn ' + (view === 'quotes'  ? 'active' : '');
-    document.getElementById('tab-clients').className = 'tab-btn ' + (view === 'clients' ? 'active' : '');
     document.getElementById('pay-filter').classList.toggle('hidden', view !== 'quotes');
     applyFilter();
+
+    // 네비 활성화
+    const nq = document.getElementById('nav-quotes');
+    const nc = document.getElementById('nav-clients');
+    if (nq && nc) {
+        const activeClass = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white';
+        const inactiveClass = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white/60 hover:text-white hover:bg-white/10 transition';
+        nq.className = view === 'quotes' ? activeClass : inactiveClass;
+        nc.className = view === 'clients' ? activeClass : inactiveClass;
+    }
 }
 
 // ── 필터 적용 ──
@@ -541,7 +543,12 @@ document.getElementById('client-modal').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
 });
 
-document.addEventListener('DOMContentLoaded', whenSupabaseReady);
+document.addEventListener('DOMContentLoaded', function() {
+    whenSupabaseReady();
+    // URL ?tab= 파라미터로 초기 탭 결정
+    const _initTab = new URLSearchParams(window.location.search).get('tab');
+    if (_initTab === 'clients') switchView('clients');
+});
 </script>
 </body>
 </html>
