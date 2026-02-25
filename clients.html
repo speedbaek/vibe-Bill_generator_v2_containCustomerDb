@@ -19,7 +19,7 @@
         .admin-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(37,99,235,.1); }
 
         /* 테이블 */
-        .data-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+        .data-table { border-collapse: collapse; width: 100%; font-size: 12px; table-layout: auto; }
         .data-table thead th {
             background: var(--navy); color: #fff; font-weight: 700;
             padding: 9px 10px; text-align: left; white-space: nowrap;
@@ -27,7 +27,21 @@
         }
         .data-table tbody tr { border-bottom: 1px solid #F1F5F9; transition: background .1s; }
         .data-table tbody tr:hover { background: #EFF6FF; }
-        .data-table tbody td { padding: 8px 10px; vertical-align: middle; }
+        /* td 기본: 줄바꿈 금지 */
+        .data-table tbody td {
+            padding: 8px 10px; vertical-align: middle;
+            white-space: nowrap;
+        }
+        /* 견적정보·이메일·메모 칸만 말줄임 허용 */
+        .data-table tbody td.col-info,
+        .data-table tbody td.col-email {
+            white-space: nowrap;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* 청구금액 */
+        .data-table tbody td.col-amount { text-align: right; font-weight: 700; }
 
         .badge-unpaid { background:#FEE2E2; color:#DC2626; font-size:10px; font-weight:700; padding:2px 7px; border-radius:9999px; }
         .badge-paid   { background:#D1FAE5; color:#059669; font-size:10px; font-weight:700; padding:2px 7px; border-radius:9999px; }
@@ -365,12 +379,12 @@ function renderQuotes() {
             + '<td><span class="font-mono text-[11px] text-slate-400">' + esc(c.client_code || '-') + '</span></td>'
             + '<td class="font-bold text-slate-800">' + esc(c.name || r.customer_name || '-') + '</td>'
             + '<td class="text-slate-600">' + esc(c.phone || '-') + '</td>'
-            + '<td class="text-slate-600 text-[11px]">' + esc(c.email || '-') + '</td>'
+            + '<td class="col-email text-slate-600 text-[11px]">' + esc(c.email || '-') + '</td>'
             + '<td class="text-slate-600">' + esc(c.assigned_attorney || '-') + '</td>'
             + '<td><span class="' + (r.doc_type === '청구서' ? 'badge-inv' : 'badge-est') + '">'
                 + esc(r.doc_type || '-') + '</span></td>'
-            + '<td class="text-slate-600 text-[11px]">' + esc(quoteInfo) + '</td>'
-            + '<td class="text-right font-bold text-slate-800">₩ ' + total.toLocaleString('ko-KR') + '</td>'
+            + '<td class="col-info text-slate-600 text-[11px]">' + esc(quoteInfo) + '</td>'
+            + '<td class="col-amount text-slate-800">₩ ' + total.toLocaleString('ko-KR') + '</td>'
             + '<td>'
                 + '<div class="flex items-center gap-1.5">'
                 + '<span class="' + (isPaid ? 'badge-paid' : 'badge-unpaid') + '">' + esc(r.pay_status || '미납') + '</span>'
@@ -420,7 +434,7 @@ function renderClients() {
             + '<td>' + (c.client_type ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded ' + tc + '">' + esc(c.client_type) + '</span>' : '-') + '</td>'
             + '<td class="text-slate-600">' + esc(c.contact_name||'-') + '</td>'
             + '<td class="text-slate-600">' + esc(c.phone||'-') + '</td>'
-            + '<td class="text-[11px] text-slate-600">' + esc(c.email||'-') + '</td>'
+            + '<td class="col-email text-[11px] text-slate-600">' + esc(c.email||'-') + '</td>'
             + '<td class="text-slate-500">' + esc(c.business_no||'-') + '</td>'
             + '<td class="text-slate-600">' + esc(c.assigned_attorney||'-') + '</td>'
             + '<td class="text-center"><span class="font-bold ' + (cnt>0?'text-blue-600':'text-slate-300') + '">' + cnt + '</span></td>'
