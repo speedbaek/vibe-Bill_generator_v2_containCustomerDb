@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>특허법인 테헤란 | 고객 관리</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        :root { --navy: #001A35; --blue: #2563EB; }
+        body  { font-family: 'Pretendard', sans-serif; }
+
+        .admin-input {
+            width: 100%; border: 1px solid #E2E8F0; border-radius: 4px;
+            padding: 6px 10px; font-size: 13px; outline: none; transition: all .2s;
+        }
+        .admin-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(37,99,235,.1); }
+
+        .client-row { cursor: pointer; transition: background .12s; border-left: 3px solid transparent; }
+        .client-row:hover  { background: #EFF6FF; }
+        .client-row.active { background: #DBEAFE; border-left-color: var(--blue); }
+
+        .badge-unpaid { background: #FEE2E2; color: #DC2626; }
+        .badge-paid   { background: #D1FAE5; color: #059669; }
+
+        .sec-title {
+            font-size: 10px; font-weight: 700; color: var(--blue);
+            text-transform: uppercase; letter-spacing: .05em;
+            margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0;
+        }
+        .d-label { font-size: 11px; color: #94A3B8; font-weight: 600; margin-bottom: 2px; }
+        .d-val   { font-size: 13px; color: #334155; }
+
+        .tab-btn { padding: 8px 16px; font-size: 14px; font-weight: 700; border-bottom: 2px solid transparent; color: #94A3B8; }
+        .tab-btn:hover { color: #64748B; }
+        .tab-btn.active { border-bottom-color: var(--blue); color: var(--blue); }
+    </style>
+</head>
+<body class="antialiased bg-slate-50 text-slate-800 overflow-hidden">
+
+<!-- ───────────── 상단 네비 ───────────── -->
+<header style="background:var(--navy)" class="text-white flex items-center justify-between px-6 py-3 shadow-lg z-30 relative">
+    <div class="flex items-center gap-4">
+        <a href="index.html" class="text-white/60 hover:text-white text-sm transition">
+            <i class="fa-solid fa-file-invoice-dollar mr-1.5"></i>견적 작성
+        </a>
+        <span class="text-white/20">|</span>
+        <h1 class="font-bold text-base tracking-tight">
+            <i class="fa-solid fa-users mr-2 text-blue-400"></i>고객 관리
+        </h1>
+    </div>
+    <button onclick="openNewModal()"
+        class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5">
+        <i class="fa-solid fa-plus"></i> 고객 등록
+    </button>
+</header>
+
+<!-- ───────────── 메인 레이아웃 ───────────── -->
+<div class="flex" style="height:calc(100vh - 52px)">
+
+    <!-- ── 좌측 패널: 고객 목록 ── -->
+    <aside class="w-72 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
+
+        <!-- 검색 + 필터 -->
+        <div class="p-3 border-b border-slate-100 space-y-2">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
+                <input type="text" id="search-input" placeholder="고객명 검색..."
+                    oninput="applyFilter()" class="admin-input pl-8 text-[12px]">
+            </div>
+            <div class="flex gap-1.5">
+                <button id="f-all"   onclick="setTypeFilter('all')"
+                    class="flex-1 text-[10px] font-bold py-1 rounded transition bg-blue-600 text-white">전체</button>
+                <button id="f-corp"  onclick="setTypeFilter('법인')"
+                    class="flex-1 text-[10px] font-bold py-1 rounded transition border border-slate-200 text-slate-500 hover:bg-slate-50">법인</button>
+                <button id="f-indiv" onclick="setTypeFilter('개인')"
+                    class="flex-1 text-[10px] font-bold py-1 rounded transition border border-slate-200 text-slate-500 hover:bg-slate-50">개인</button>
+            </div>
+        </div>
+
+        <!-- 건수 표시 -->
+        <div class="px-3 py-1.5 text-[10px] text-slate-400 border-b border-slate-50">
+            총 <span id="client-count" class="font-bold text-blue-600">0</span>명
+        </div>
+
+        <!-- 목록 -->
+        <ul id="client-list" class="flex-1 overflow-y-auto divide-y divide-slate-50"></ul>
+    </aside>
+
+    <!-- ── 우측 패널: 상세 ── -->
+    <main class="flex-1 overflow-y-auto bg-slate-50">
+
+        <!-- 빈 상태 -->
+        <div id="empty-state" class="flex flex-col items-center justify-center h-full text-slate-300 select-none">
+            <i class="fa-solid fa-users text-5xl mb-4"></i>
+            <p class="text-sm">좌측에서 고객을 선택하거나</p>
+            <p class="text-sm">우상단에서 새 고객을 등록하세요.</p>
+        </div>
+
+        <!-- 상세 패널 -->
+        <div id="detail-panel" class="hidden p-6 max-w-3xl">
+
+            <!-- 헤더 -->
+            <div class="flex items-start justify-between mb-5">
+                <div>
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <h2 id="d-name" class="text-2xl font-bold text-slate-800"></h2>
+                        <span id="d-code" class="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded"></span>
+                        <span id="d-type-badge" class="text-xs font-bold px-2 py-0.5 rounded-full"></span>
+                    </div>
+                    <p id="d-created" class="text-[11px] text-slate-400"></p>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <button onclick="openEditModal()"
+                        class="text-sm border border-slate-300 px-4 py-2 rounded-lg font-bold text-slate-600 hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-pencil mr-1"></i>수정
+                    </button>
+                    <button onclick="goCreateQuote()"
+                        class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-500 transition">
+                        <i class="fa-solid fa-file-invoice-dollar mr-1"></i>견적서 작성
+                    </button>
+                </div>
+            </div>
+
+            <!-- 탭 -->
+            <div class="flex border-b border-slate-200 mb-5">
+                <button id="tab-info"    onclick="switchTab('info')"    class="tab-btn active">기본 정보</button>
+                <button id="tab-history" onclick="switchTab('history')" class="tab-btn">
+                    발행 이력&nbsp;<span id="quote-badge" class="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded-full">0</span>
+                </button>
+            </div>
+
+            <!-- 탭: 기본 정보 -->
+            <div id="panel-info">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <div class="sec-title"><i class="fa-solid fa-id-card mr-1"></i>기본 정보</div>
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                        <div><div class="d-label">담당자명</div><div id="d-contact"     class="d-val">-</div></div>
+                        <div><div class="d-label">연락처</div>   <div id="d-phone"       class="d-val">-</div></div>
+                        <div><div class="d-label">이메일</div>   <div id="d-email"       class="d-val">-</div></div>
+                        <div><div class="d-label">사업자번호</div><div id="d-biz-no"     class="d-val">-</div></div>
+                        <div><div class="d-label">담당 변리사</div><div id="d-attorney"  class="d-val">-</div></div>
+                        <div><div class="d-label">활성 상태</div> <div id="d-active"     class="d-val">-</div></div>
+                        <div class="col-span-2">
+                            <div class="d-label">메모</div>
+                            <div id="d-memo" class="d-val whitespace-pre-wrap bg-slate-50 rounded p-2 mt-1 text-[12px]">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭: 발행 이력 -->
+            <div id="panel-history" class="hidden">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div id="quotes-list">
+                        <div class="p-8 text-center text-slate-400 text-sm">발행 이력이 없습니다.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /detail-panel -->
+    </main>
+</div>
+
+<!-- ───────────── 고객 등록/수정 모달 ───────────── -->
+<div id="client-modal" class="fixed inset-0 z-50 hidden items-center justify-center"
+     style="background:rgba(0,0,0,.45)">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+        <!-- 모달 헤더 -->
+        <div style="background:var(--navy)" class="text-white px-5 py-4 flex items-center justify-between">
+            <h3 id="modal-title" class="font-bold text-base">고객 등록</h3>
+            <button onclick="closeModal()" class="text-white/60 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <!-- 모달 바디 -->
+        <div class="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="col-span-2">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">고객명 *</label>
+                    <input type="text" id="m-name" class="admin-input" placeholder="고객명 (필수)">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">고객 유형</label>
+                    <select id="m-type" class="admin-input">
+                        <option value="">선택</option>
+                        <option value="법인">법인</option>
+                        <option value="개인">개인</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">담당자명</label>
+                    <input type="text" id="m-contact" class="admin-input" placeholder="담당자명">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">연락처</label>
+                    <input type="text" id="m-phone" class="admin-input" placeholder="010-0000-0000">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">이메일</label>
+                    <input type="email" id="m-email" class="admin-input" placeholder="email@example.com">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">사업자번호</label>
+                    <input type="text" id="m-biz-no" class="admin-input" placeholder="000-00-00000">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">담당 변리사</label>
+                    <input type="text" id="m-attorney" class="admin-input" placeholder="담당 변리사">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">메모</label>
+                    <textarea id="m-memo" class="admin-input h-16 resize-none" placeholder="메모"></textarea>
+                </div>
+            </div>
+        </div>
+        <!-- 모달 푸터 -->
+        <div class="px-5 py-4 border-t border-slate-100 flex justify-end gap-2">
+            <button onclick="closeModal()"
+                class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50">
+                취소
+            </button>
+            <button onclick="saveClient()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-500 transition">
+                저장
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ───────────── JavaScript ───────────── -->
+<script>
+// ── 설정 (index.html과 동일한 값으로 채워주세요) ──
+const SUPABASE_URL = 'https://pduhmdgsgtihrbwzrcjo.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkdWhtZGdzZ3RpaHJid3pyY2pvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM1ODAsImV4cCI6MjA4NzU3OTU4MH0.86pwEjfm4qmTZulCBYabRpm-Z6fKgL44p1Y9fo9jjwo';
+
+let _supabase       = null;
+let allClients      = [];
+let selectedId      = null;
+let activeFilter    = 'all';
+let activeTab       = 'info';
+let editingId       = null;
+
+// ── Supabase 초기화 ──
+function whenSupabaseReady() {
+    if (typeof supabase !== 'undefined') {
+        try { _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); loadClients(); }
+        catch(e) { console.error(e); }
+        return;
+    }
+    const t = setInterval(function() {
+        if (typeof supabase !== 'undefined') {
+            clearInterval(t);
+            try { _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); loadClients(); }
+            catch(e) {}
+        }
+    }, 100);
+    setTimeout(function() { clearInterval(t); }, 8000);
+}
+
+// ── 고객 목록 로드 ──
+async function loadClients() {
+    if (!_supabase) return;
+    const { data, error } = await _supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    allClients = data || [];
+    applyFilter();
+    // 선택 유지
+    if (selectedId) {
+        const found = allClients.find(function(c) { return c.id === selectedId; });
+        if (found) renderDetail(found);
+    }
+}
+
+// ── 필터 버튼 ──
+function setTypeFilter(type) {
+    activeFilter = type;
+    ['f-all','f-corp','f-indiv'].forEach(function(id) {
+        document.getElementById(id).className =
+            'flex-1 text-[10px] font-bold py-1 rounded transition border border-slate-200 text-slate-500 hover:bg-slate-50';
+    });
+    const activeId = type === 'all' ? 'f-all' : type === '법인' ? 'f-corp' : 'f-indiv';
+    document.getElementById(activeId).className =
+        'flex-1 text-[10px] font-bold py-1 rounded transition bg-blue-600 text-white';
+    applyFilter();
+}
+
+// ── 검색 + 타입 필터 적용 ──
+function applyFilter() {
+    const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
+    let list = allClients;
+    if (activeFilter !== 'all') list = list.filter(function(c) { return c.client_type === activeFilter; });
+    if (q) list = list.filter(function(c) { return (c.name || '').toLowerCase().includes(q); });
+    renderList(list);
+}
+
+// ── 목록 렌더링 ──
+function renderList(clients) {
+    document.getElementById('client-count').innerText = clients.length;
+    const ul = document.getElementById('client-list');
+    if (clients.length === 0) {
+        ul.innerHTML = '<li class="p-4 text-center text-[12px] text-slate-400">결과가 없습니다.</li>';
+        return;
+    }
+    ul.innerHTML = clients.map(function(c) {
+        const isActive = c.id === selectedId;
+        const typeCls  = c.client_type === '법인'
+            ? 'bg-blue-100 text-blue-600'
+            : c.client_type === '개인' ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-400';
+        return '<li class="client-row px-4 py-3 ' + (isActive ? 'active' : '') + '"'
+            + ' onclick="selectClient(\'' + c.id + '\')">'
+            + '<div class="flex items-center justify-between">'
+            + '<div class="font-bold text-[13px] text-slate-800 truncate">' + esc(c.name) + '</div>'
+            + (c.client_type ? '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded ml-1 flex-shrink-0 ' + typeCls + '">' + esc(c.client_type) + '</span>' : '')
+            + '</div>'
+            + '<div class="text-[11px] text-slate-400 mt-0.5 truncate">'
+            + esc(c.phone || '') + (c.email ? '&nbsp;·&nbsp;' + esc(c.email) : '') + '</div>'
+            + (c.client_code ? '<div class="text-[10px] text-slate-300 mt-0.5">' + esc(c.client_code) + '</div>' : '')
+            + '</li>';
+    }).join('');
+}
+
+// ── 고객 선택 ──
+async function selectClient(id) {
+    selectedId = id;
+    const client = allClients.find(function(c) { return c.id === id; });
+    if (!client) return;
+    applyFilter(); // active 스타일 반영
+    renderDetail(client);
+    await loadQuotes(id);
+}
+
+// ── 상세 패널 렌더링 ──
+function renderDetail(client) {
+    document.getElementById('empty-state').classList.add('hidden');
+    document.getElementById('detail-panel').classList.remove('hidden');
+
+    document.getElementById('d-name').innerText    = client.name;
+    document.getElementById('d-code').innerText    = client.client_code || '';
+    document.getElementById('d-created').innerText = client.created_at
+        ? '등록일: ' + new Date(client.created_at).toLocaleDateString('ko-KR') : '';
+
+    const badge = document.getElementById('d-type-badge');
+    badge.innerText   = client.client_type || '';
+    badge.className   = 'text-xs font-bold px-2 py-0.5 rounded-full '
+        + (client.client_type === '법인' ? 'bg-blue-100 text-blue-600'
+         : client.client_type === '개인' ? 'bg-purple-100 text-purple-600'
+         : 'bg-slate-100 text-slate-500');
+
+    document.getElementById('d-contact').innerText  = client.contact_name || '-';
+    document.getElementById('d-phone').innerText    = client.phone        || '-';
+    document.getElementById('d-email').innerText    = client.email        || '-';
+    document.getElementById('d-biz-no').innerText   = client.business_no  || '-';
+    document.getElementById('d-attorney').innerText = client.assigned_attorney || '-';
+    document.getElementById('d-active').innerHTML   = client.is_active
+        ? '<span class="text-green-600 font-bold">활성</span>'
+        : '<span class="text-slate-400">비활성</span>';
+    document.getElementById('d-memo').innerText = client.memo || '-';
+
+    switchTab(activeTab);
+}
+
+// ── 발행 이력 로드 ──
+async function loadQuotes(clientId) {
+    if (!_supabase) return;
+    const { data } = await _supabase
+        .from('quotes')
+        .select('id, doc_type, customer_name, pay_status, paid_at, quote_data, created_at, share_token')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false });
+
+    const cnt = data ? data.length : 0;
+    document.getElementById('quote-badge').innerText = cnt;
+
+    if (!data || cnt === 0) {
+        document.getElementById('quotes-list').innerHTML =
+            '<div class="p-8 text-center text-slate-400 text-sm">발행 이력이 없습니다.</div>';
+        return;
+    }
+
+    document.getElementById('quotes-list').innerHTML =
+        '<div class="divide-y divide-slate-100">'
+        + data.map(function(q) {
+            const total    = calcTotal(q.quote_data);
+            const date     = q.created_at ? new Date(q.created_at).toLocaleDateString('ko-KR') : '-';
+            const paidDate = q.paid_at    ? new Date(q.paid_at).toLocaleDateString('ko-KR') : '';
+            const isPaid   = q.pay_status === '완납';
+            const title    = (q.quote_data && q.quote_data.title) ? q.quote_data.title : '-';
+            const docCls   = q.doc_type === '청구서'
+                ? 'bg-slate-800 text-white'
+                : 'bg-blue-100 text-blue-700';
+            const shareLink = q.share_token
+                ? 'index.html?token=' + q.share_token : '';
+
+            return '<div class="p-4 hover:bg-slate-50 transition">'
+                + '<div class="flex items-start justify-between gap-3">'
+                + '<div class="flex-1 min-w-0">'
+                + '<div class="flex items-center gap-2 mb-1">'
+                + '<span class="text-[10px] font-bold px-2 py-0.5 rounded ' + docCls + '">' + esc(q.doc_type || '-') + '</span>'
+                + '<span class="text-[11px] text-slate-400">' + date + '</span>'
+                + '</div>'
+                + '<div class="font-bold text-[13px] text-slate-800 truncate">' + esc(title) + '</div>'
+                + '<div class="text-[12px] text-slate-500 mt-1">₩ ' + total.toLocaleString('ko-KR') + '</div>'
+                + (paidDate ? '<div class="text-[10px] text-green-600 mt-0.5">입금확인: ' + paidDate + '</div>' : '')
+                + '</div>'
+                + '<div class="flex flex-col items-end gap-2 flex-shrink-0">'
+                + '<span class="text-[10px] font-bold px-2 py-1 rounded-full ' + (isPaid ? 'badge-paid' : 'badge-unpaid') + '">'
+                + esc(q.pay_status || '미납') + '</span>'
+                + '<button onclick="togglePay(\'' + q.id + '\',\'' + (q.pay_status || '미납') + '\')"'
+                + ' class="text-[10px] border border-slate-200 px-2 py-1 rounded hover:bg-slate-100 text-slate-500 whitespace-nowrap transition">'
+                + (isPaid ? '미납으로' : '완납 처리') + '</button>'
+                + (shareLink ? '<a href="' + shareLink + '" target="_blank"'
+                    + ' class="text-[10px] text-blue-500 hover:underline whitespace-nowrap">'
+                    + '<i class="fa-solid fa-link mr-0.5"></i>링크</a>' : '')
+                + '</div>'
+                + '</div></div>';
+        }).join('')
+        + '</div>';
+}
+
+// ── 합계 계산 (quote_data.items 기준) ──
+function calcTotal(qd) {
+    if (!qd || !qd.items) return 0;
+    var tFee = qd.items.reduce(function(s, i) { return s + (Number(i.feePrice) || 0); }, 0);
+    var tGov = qd.items.reduce(function(s, i) { return s + (Number(i.govPrice) || 0); }, 0);
+    return Math.round(tFee * 1.1) + tGov;
+}
+
+// ── 납부상태 토글 ──
+async function togglePay(quoteId, currentStatus) {
+    if (!_supabase) return;
+    const newStatus  = currentStatus === '완납' ? '미납' : '완납';
+    const updateData = {
+        pay_status: newStatus,
+        paid_at: newStatus === '완납' ? new Date().toISOString() : null
+    };
+    const { error } = await _supabase.from('quotes').update(updateData).eq('id', quoteId);
+    if (error) { alert('상태 변경 실패: ' + error.message); return; }
+    if (selectedId) await loadQuotes(selectedId);
+}
+
+// ── 탭 전환 ──
+function switchTab(tab) {
+    activeTab = tab;
+    document.getElementById('panel-info').classList.toggle('hidden', tab !== 'info');
+    document.getElementById('panel-history').classList.toggle('hidden', tab !== 'history');
+    document.getElementById('tab-info').className    = 'tab-btn ' + (tab === 'info'    ? 'active' : '');
+    document.getElementById('tab-history').className = 'tab-btn ' + (tab === 'history' ? 'active' : '');
+}
+
+// ── 모달: 신규 등록 ──
+function openNewModal() {
+    editingId = null;
+    document.getElementById('modal-title').innerText = '고객 등록';
+    ['m-name','m-contact','m-phone','m-email','m-biz-no','m-attorney','m-memo']
+        .forEach(function(id) { document.getElementById(id).value = ''; });
+    document.getElementById('m-type').value = '';
+    showModal();
+}
+
+// ── 모달: 수정 ──
+function openEditModal() {
+    const c = allClients.find(function(x) { return x.id === selectedId; });
+    if (!c) return;
+    editingId = c.id;
+    document.getElementById('modal-title').innerText  = '고객 수정';
+    document.getElementById('m-name').value           = c.name              || '';
+    document.getElementById('m-type').value           = c.client_type       || '';
+    document.getElementById('m-contact').value        = c.contact_name      || '';
+    document.getElementById('m-phone').value          = c.phone             || '';
+    document.getElementById('m-email').value          = c.email             || '';
+    document.getElementById('m-biz-no').value         = c.business_no       || '';
+    document.getElementById('m-attorney').value       = c.assigned_attorney || '';
+    document.getElementById('m-memo').value           = c.memo              || '';
+    showModal();
+}
+
+function showModal()  { document.getElementById('client-modal').style.display = 'flex'; }
+function closeModal() { document.getElementById('client-modal').style.display = 'none'; }
+
+// ── 고객 저장 (신규/수정) ──
+async function saveClient() {
+    const name = document.getElementById('m-name').value.trim();
+    if (!name) { alert('고객명을 입력해주세요.'); return; }
+
+    const payload = {
+        name,
+        client_type:       document.getElementById('m-type').value.trim()     || null,
+        contact_name:      document.getElementById('m-contact').value.trim()  || null,
+        phone:             document.getElementById('m-phone').value.trim()    || null,
+        email:             document.getElementById('m-email').value.trim()    || null,
+        business_no:       document.getElementById('m-biz-no').value.trim()   || null,
+        assigned_attorney: document.getElementById('m-attorney').value.trim() || null,
+        memo:              document.getElementById('m-memo').value.trim()     || null
+    };
+
+    let error;
+    if (editingId) {
+        ({ error } = await _supabase.from('clients').update(payload).eq('id', editingId));
+    } else {
+        ({ error } = await _supabase.from('clients').insert([payload]));
+    }
+
+    if (error) { alert('저장 실패: ' + error.message); return; }
+    closeModal();
+    await loadClients();
+    if (editingId) await selectClient(editingId);
+}
+
+// ── 견적서 작성 버튼 → index.html prefill ──
+function goCreateQuote() {
+    const c = allClients.find(function(x) { return x.id === selectedId; });
+    if (!c) return;
+    const p = new URLSearchParams({ prefill_name: c.name, client_id: c.id });
+    if (c.phone) p.set('prefill_phone', c.phone);
+    if (c.email) p.set('prefill_email', c.email);
+    window.location.href = 'index.html?' + p.toString();
+}
+
+// ── HTML 이스케이프 ──
+function esc(s) {
+    if (!s) return '';
+    return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── 모달 바깥 클릭 닫기 ──
+document.getElementById('client-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+document.addEventListener('DOMContentLoaded', whenSupabaseReady);
+</script>
+</body>
+</html>
