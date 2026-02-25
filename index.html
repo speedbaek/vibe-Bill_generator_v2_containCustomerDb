@@ -134,7 +134,12 @@
     <div class="flex flex-col md:flex-row h-screen overflow-y-auto md:overflow-hidden">
         <aside class="admin-sidebar flex-shrink-0 flex flex-col overflow-y-auto shadow-xl z-20 no-print md:w-[500px]">
             <div class="p-3 border-b border-slate-100 bg-slate-50 flex justify-between items-center flex-shrink-0">
-                <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> 견적 마스터 v4.0</h2>
+                <div class="flex items-center gap-3">
+                    <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-blue-600"></i> 견적 마스터 v4.0</h2>
+                    <a href="clients.html" class="text-[9px] font-bold border border-blue-300 px-2 py-0.5 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 flex items-center gap-1">
+                        <i class="fa-solid fa-users"></i> 고객 DB
+                    </a>
+                </div>
                 <div class="flex gap-1.5">
                     <button onclick="loadSample()" class="text-[9px] font-bold border border-slate-200 px-2 py-0.5 rounded bg-white hover:bg-slate-50">샘플</button>
                     <button onclick="resetAll()" class="text-[9px] font-bold border border-slate-200 px-2 py-0.5 rounded bg-white text-red-500 hover:bg-red-50">초기화</button>
